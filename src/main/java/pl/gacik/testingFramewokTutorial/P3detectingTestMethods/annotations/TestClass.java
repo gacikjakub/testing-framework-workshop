@@ -13,12 +13,25 @@ import java.util.List;
 
 public class TestClass {
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public @interface Test {}
+
     public static void main(String[] args) {
         runClassTests(new ListTests());
     }
 
     public static void runClassTests(Object o) {
-       // Write detecting and executing test methods with the use of annotations.
+        Method[] declaredMethods = o.getClass().getDeclaredMethods();
+            Arrays.stream(declaredMethods).filter(m -> m.isAnnotationPresent(Test.class)).forEach(m -> {
+                try {
+//                    System.out.println(m.getName());
+                    m.invoke(o, new ArrayList<>());                             // Still bad solution
+                    m.invoke(o, new LinkedList<>());
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
 }
