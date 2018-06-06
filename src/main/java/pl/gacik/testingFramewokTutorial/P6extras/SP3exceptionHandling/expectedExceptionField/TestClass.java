@@ -10,13 +10,33 @@ import java.util.Arrays;
 
 public class TestClass {
 
+
+
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
-    public @interface Test {}
+    public @interface Test {
+        Class<? extends Throwable> expectedException() default DefaultEmptyException.class;
+    }
 
-    // Refactor this so that it works properly.
+
+    private static class DefaultEmptyException extends Exception {
+        DefaultEmptyException() {
+            super();
+        }
+    }
+
+    public static class NoExpectedException extends Exception {
+        public NoExpectedException() {
+            super();
+        }
+        public NoExpectedException(String s) {
+            super(s);
+        }
+    }
+
 
     public static void runClassTests(Object o) {
+
         Method[] declaredMethods = o.getClass().getDeclaredMethods();
         BeforeAfter beforeAfter = new BeforeAfter(o);
         try {
@@ -26,23 +46,35 @@ public class TestClass {
             return;
         }
         Arrays.stream(declaredMethods).filter(m -> m.isAnnotationPresent(Test.class)).forEach(m -> {
-            try {
-                beforeAfter.getBeforeMethod().invoke(o);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-                return;
-            }
-            try {
-                m.invoke(o);
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-            try {
-                beforeAfter.getAfterMethod().invoke(o);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-                return;
-            }
+                Class<? extends Throwable> expectedException = DefaultEmptyException.class;
+                try {
+                    Test annotation = m.getAnnotation(Test.class);
+                    if (annotation.expectedException() != DefaultEmptyException.class) {
+                        expectedException = annotation.expectedException();
+                    }
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    return;
+                }
+                try {
+                    beforeAfter.getBeforeMethod().invoke(o);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                try {
+                    m.invoke(o);
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+                try {
+                    beforeAfter.getAfterMethod().invoke(o);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                    return;
+                }
             });
         try {
             beforeAfter.getAfterClass().invoke(o);
