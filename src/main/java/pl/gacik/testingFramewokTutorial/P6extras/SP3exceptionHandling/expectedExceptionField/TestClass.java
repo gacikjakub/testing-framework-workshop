@@ -14,7 +14,22 @@ public class TestClass {
     @Target(ElementType.METHOD)
     public @interface Test {}
 
-    // Refactor this so that it works properly.
+
+    private static class DefaultEmptyException extends Exception {
+        DefaultEmptyException() {
+            super();
+        }
+    }
+
+    public static class NoExpectedException extends Exception {
+        public NoExpectedException() {
+            super();
+        }
+        public NoExpectedException(String s) {
+            super(s);
+        }
+    }
+    
 
     public static void runClassTests(Object o) {
         Method[] declaredMethods = o.getClass().getDeclaredMethods();
@@ -26,17 +41,21 @@ public class TestClass {
             return;
         }
         Arrays.stream(declaredMethods).filter(m -> m.isAnnotationPresent(Test.class)).forEach(m -> {
+            Class<? extends Throwable> expectedException = DefaultEmptyException.class;
             try {
                 beforeAfter.getBeforeMethod().invoke(o);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
                 return;
             }
+            // You need to refactor this block of code
+            // {
             try {
                 m.invoke(o);
             } catch (Throwable t) {
                 t.printStackTrace();
             }
+            // }
             try {
                 beforeAfter.getAfterMethod().invoke(o);
             } catch (IllegalAccessException | InvocationTargetException e) {
