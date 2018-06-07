@@ -21,37 +21,17 @@ public class TestClass {
     public static void runClassTests(Object o) {
         Method[] declaredMethods = o.getClass().getDeclaredMethods();
         BeforeAfter beforeAfter = new BeforeAfter(o);
-        try {
-            beforeAfter.getBeforeClass().invoke(o);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            return;
-        }
+        // Here you need something
         Arrays.stream(declaredMethods).filter(m -> m.isAnnotationPresent(Test.class)).forEach(m -> {
-            try {
-                beforeAfter.getBeforeMethod().invoke(o);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-                return;
-            }
+            // And Here
             try {
                 m.invoke(o);
             } catch (Throwable t) {
                 t.printStackTrace();
             }
-            try {
-                beforeAfter.getAfterMethod().invoke(o);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-                return;
-            }
+            // And Here
             });
-        try {
-            beforeAfter.getAfterClass().invoke(o);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            return;
-        }
+        // And Here
 
     }
 
