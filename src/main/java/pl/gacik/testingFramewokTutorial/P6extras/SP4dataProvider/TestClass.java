@@ -66,7 +66,7 @@ public class TestClass {
                     t.printStackTrace();
                     return;
                 }
-                for(Object[] params: providerParams) {
+                Object[] params =  providerParams[0];
                     try {
                         beforeAfter.getBeforeMethod().invoke(o);
                     } catch (IllegalAccessException | InvocationTargetException e) {
@@ -92,7 +92,7 @@ public class TestClass {
                         e.printStackTrace();
                         return;
                     }
-                }
+                
             });
         try {
             beforeAfter.getAfterClass().invoke(o);
